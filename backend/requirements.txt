@@ -1,0 +1,13 @@
+# 锁定与训练环境一致的版本，保证 pipeline.pkl / 模型文件可复现加载
+fastapi==0.136.3
+uvicorn[standard]==0.49.0
+pydantic==2.13.4
+numpy==2.5.1
+pandas==3.0.3
+scikit-learn==1.9.0
+xgboost==3.4.1
+# torch 在 Docker 内通过 PyTorch CPU 源安装（见 Dockerfile），此处保持未锁定避免被重复拉取 CUDA 版
+torch
+PyWavelets==1.8.0
+python-multipart==0.0.32
+itsdangerous==2.2.0
