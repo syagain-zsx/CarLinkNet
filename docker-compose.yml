@@ -1,0 +1,42 @@
+name: ids
+
+services:
+  backend:
+    build:
+      context: ./backend
+      args:
+        # 国内服务器可在 .env 里设置镜像加速（见 DEPLOY.md）
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        PYTORCH_FIND_LINKS: ${PYTORCH_FIND_LINKS:-https://download.pytorch.org/whl/cpu}
+    container_name: ids-backend
+    restart: unless-stopped
+    environment:
+      # 数据库与上传目录挂载到持久卷，容器重建不丢数据
+      - IDS_DB_PATH=/app/persist/ids.db
+      - IDS_UPLOAD_DIR=/app/persist/uploads
+    volumes:
+      - ids_persist:/app/persist
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
+    container_name: ids-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+
+volumes:
+  ids_persist:
